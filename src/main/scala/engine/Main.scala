@@ -13,7 +13,6 @@ object Main {
   def main(args: Array[String]): Unit = {
     implicit val system = ActorSystem("enginemain")
     implicit val materializer = ActorMaterializer()
-    println(ConfigFactory.load().getInt("akka.actor.default-mailbox.stash-capacity"))
     try {
       val server = new MatchingEngine(system, ConfigFactory.load())
       val bindingFuture = Http().bindAndHandle(server.routes, "0.0.0.0", 3000)

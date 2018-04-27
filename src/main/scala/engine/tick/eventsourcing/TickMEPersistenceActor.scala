@@ -2,10 +2,14 @@ package engine.tick.eventsourcing
 
 import akka.actor.{ActorRef, Props}
 import akka.persistence.{PersistentActor, SnapshotOffer}
-import engine.tick.{TickBook, TickExecution, TickMatchingEngine, TickOrder}
+import engine.tick.{TickExecution, TickMatchingEngine, TickOrder}
 
-import scala.concurrent.Promise
 
+/**
+  *
+  * @param maxPrcInTicks The TickMatchingEngine parameter. To this engine, all prices are from 0 to maxPrcInTicks
+  * @param fwdActor an optional actor reference where orders are broadcast after getting written to journal.
+  */
 class TickMEPersistenceActor(maxPrcInTicks: Int, fwdActor: Option[ActorRef]) extends PersistentActor{
   override val persistenceId = "engine-id"
   val state = new TickMatchingEngine(maxPrcInTicks)
@@ -24,7 +28,7 @@ class TickMEPersistenceActor(maxPrcInTicks: Int, fwdActor: Option[ActorRef]) ext
     case o: TickOrder =>
       persist(o)(updateState)
       fwdActor.foreach( _ ! o)
-      sender ! TickMEOrderResponse("Ok", lastExecutions)
+      sender ! TickMEOrderResponse(lastExecutions)
     case "book" =>
       sender ! state.book
   }

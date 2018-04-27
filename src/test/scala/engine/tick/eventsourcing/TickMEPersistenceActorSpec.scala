@@ -47,7 +47,7 @@ class TickMEPersistenceActorSpec
       TickOrder(1600, 15, Sell, "o7"),
     ).foreach { o =>
       exchange1 ! o
-      expectMsgType[TickMEOrderResponse].status should be ("Ok")
+      expectMsgType[TickMEOrderResponse]
     }
 
     val bookExpected =

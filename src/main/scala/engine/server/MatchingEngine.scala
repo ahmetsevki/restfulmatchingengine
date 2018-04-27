@@ -14,7 +14,11 @@ import engine._
 import scala.concurrent.{Future}
 import scala.concurrent.duration._
 
-
+/**
+  * Rest server.
+  * @param system
+  * @param config
+  */
 class MatchingEngine(system: ActorSystem, config: Config) extends Directives with CORSHandler {
 
   import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
@@ -25,6 +29,7 @@ class MatchingEngine(system: ActorSystem, config: Config) extends Directives wit
   val minPrcDecimal: BigDecimal = BigDecimal(config.getString("engine.min_price"))
   val maxPrcDecimal: BigDecimal = BigDecimal(config.getString("engine.max_price"))
   val tickSize: Double = config.getDouble("engine.tick_size")
+  // the converter from decimal to integer prices
   val decimalToTicks = new DecimalToTicks(minPrcDecimal, maxPrcDecimal, tickSize)
 
 
@@ -34,6 +39,8 @@ class MatchingEngine(system: ActorSystem, config: Config) extends Directives wit
   system.actorOf(TickMEActor.props(decimalToTicks.maxPrcInTicks))
 
 
+  // this actor contains the matching engine. all orders are broadcast to queryActor after it is journaled
+  // thie queryActor can be a rabbitMQ bus actor or another pubsub providing actor.
   val tickEngineActor: ActorRef =
     system.actorOf(
       TickMEPersistenceActor.props(decimalToTicks.maxPrcInTicks, Some(queryActor))
@@ -68,7 +75,7 @@ class MatchingEngine(system: ActorSystem, config: Config) extends Directives wit
                   val tickOrder = TickOrder(tickPrc, qty, orderSide, (js \ "orderId").asOpt[String].getOrElse("noid"))
                   val response: Future[TickMEResponse] = (tickEngineActor ? tickOrder).mapTo[TickMEResponse]
                   onSuccess(response) {
-                    case TickMEOrderResponse(_, executions) =>
+                    case TickMEOrderResponse(executions) =>
                       // TODO: you can report executions here
                       complete(StatusCodes.OK)
                     case TickMEReject =>
