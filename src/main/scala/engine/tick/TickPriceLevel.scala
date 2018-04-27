@@ -7,6 +7,9 @@ import scala.collection.mutable
 
 sealed trait CrossResult
 
+/**
+  * Maintains the list of orders at a price level.
+  */
 class TickPriceLevel{
   private val queue = mutable.Queue[TickOrder]()
   def isEmpty: Boolean = queue.isEmpty

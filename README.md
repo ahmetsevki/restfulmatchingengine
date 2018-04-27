@@ -14,6 +14,8 @@ This is an example matching engine implementation.
 
 - The actor that contains the matching engine is run on a PinnedThreadDispatcher so it is always mapped to the same thread (performance considerations)
 
+- Message passing between the actors happen via reference passing of immutable case classes. The REST marshal/unmarshalling uses play-json.
+
 ## Running
 The root directory of the project has an `application.conf` file that contains the following:
 ```bash
