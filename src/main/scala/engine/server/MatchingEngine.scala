@@ -33,8 +33,11 @@ class MatchingEngine(system: ActorSystem, config: Config) extends Directives wit
   val queryActor: ActorRef =
   system.actorOf(TickMEActor.props(decimalToTicks.maxPrcInTicks))
 
+
   val tickEngineActor: ActorRef =
-    system.actorOf(TickMEPersistenceActor.props(decimalToTicks.maxPrcInTicks, Some(queryActor)))
+    system.actorOf(
+      TickMEPersistenceActor.props(decimalToTicks.maxPrcInTicks, Some(queryActor))
+        .withDispatcher("engine.tick-exchange-pinned-dispatcher"))
 
   implicit val askTimeout: akka.util.Timeout = 10.seconds
   lazy val routes: Route =

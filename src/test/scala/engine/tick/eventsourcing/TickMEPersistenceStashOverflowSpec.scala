@@ -29,7 +29,7 @@ class TickMEPersistenceStashOverflowSpec
   with DefaultTimeout with ImplicitSender with FunSuiteLike with Matchers with BeforeAndAfterAll {
   test("simple start stop along w/ fwd actor") {
     val bookQueryActor1 = system.actorOf(engine.tick.TickMEActor.props(50000))
-    val exchange1 = system.actorOf(TickMEPersistenceActor.props(50000, Some(bookQueryActor1)))
+    val exchange1 = system.actorOf(TickMEPersistenceActor.props(50000, Some(bookQueryActor1)).withDispatcher("engine.tick-exchange-pinned-dispatcher"))
     exchange1 ! "book"
     expectMsgType[TickBook] should be(TickBook(Nil, Nil))
     val count = 100
@@ -61,7 +61,7 @@ class TickMEPersistenceStashOverflowSpec
     system.stop(bookQueryActor1)
 
     /** when the exchange comes up, it should not have the rejected -due to queue overflow- orders */
-    val exchange2 = system.actorOf(TickMEPersistenceActor.props(50000, None))
+    val exchange2 = system.actorOf(TickMEPersistenceActor.props(50000, None).withDispatcher("engine.tick-exchange-pinned-dispatcher"))
     exchange2 ! "book"
     expectMsgType[TickBook].buys.length should be (count - rejects)
   }

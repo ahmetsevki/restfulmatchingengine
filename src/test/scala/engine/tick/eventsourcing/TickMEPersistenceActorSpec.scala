@@ -34,7 +34,7 @@ class TickMEPersistenceActorSpec
 
   test("simple start stop along w/ fwd actor") {
     val bookQueryActor1 = system.actorOf(engine.tick.TickMEActor.props(5000))
-    val exchange1 = system.actorOf(TickMEPersistenceActor.props(5000, Some(bookQueryActor1)))
+    val exchange1 = system.actorOf(TickMEPersistenceActor.props(5000, Some(bookQueryActor1)).withDispatcher("engine.tick-exchange-pinned-dispatcher"))
     exchange1 ! "book"
     expectMsgType[TickBook] should be (TickBook(Nil, Nil))
     Seq(
@@ -73,7 +73,7 @@ class TickMEPersistenceActorSpec
     system.stop(bookQueryActor1)
 
     val bookQueryActor2 = system.actorOf(engine.tick.TickMEActor.props(5000))
-    val exchange2 = system.actorOf(TickMEPersistenceActor.props(5000, Some(bookQueryActor2)))
+    val exchange2 = system.actorOf(TickMEPersistenceActor.props(5000, Some(bookQueryActor2)).withDispatcher("engine.tick-exchange-pinned-dispatcher"))
     exchange2 ! "book"
     expectMsgType[TickBook] should be( bookExpected )
     bookQueryActor2 ! "book"
